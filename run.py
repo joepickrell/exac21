@@ -45,6 +45,18 @@ class Variant(db.Model):
 	AC_SAS = db.Column(db.Integer, nullable = False)
 	AN_SAS = db.Column(db.Integer, nullable = False)
 	annotation =  db.relationship('Annotation', backref='variant', lazy='dynamic')
+	@property
+	def as_dict(self):
+		return {c.name: getattr(self, c.name) for c in self.__table__.columns}
+	@property
+	def as_dict_wannot(self):
+		annotlist = [i.as_dict for i in self.annotation]
+		toreturn = {c.name: getattr(self, c.name) for c in self.__table__.columns}
+		toreturn["annotation_list"] = annotlist
+		return toreturn
+	@property
+	def info(self):
+		return {'id': self.id, 'chr': self.chr, 'pos': self.pos, 'rsid': self.rsid, 'ref':self.ref, 'alt':self.alt}
 
 class Annotation(db.Model):
 	__tablename__ = "annotation"
@@ -57,50 +69,55 @@ class Annotation(db.Model):
 	lof = db.Column(db.String(20), nullable = True)
 	lof_filter = db.Column(db.String(20), nullable = True)
 	lof_flags = db.Column(db.String(20), nullable = True)
+	@property
+	def as_dict(self):
+		return {c.name: getattr(self, c.name) for c in self.__table__.columns}
 #Views
-#Wallet
 wallet = Wallet()
 payment = Payment(app, wallet)
 
-def make_public_variant(variant):
-    new_variant = {}
-    for field in variant:
-        if field == 'id':
-            new_variant['uri'] = url_for('get_snp', chromosome=variant['chr'], position = variant['pos'], _external=True)
-        else:
-            new_variant[field] = variant[field]
-    return new_variant
-
-def make_public_phenotype(pheno):
-    new_pheno = {}
-    for field in pheno:
-        if field == 'id':
-            new_pheno['uri'] = url_for('get_pheno', phenoid=pheno['id'],  _external=True)
-        else:
-            new_pheno[field] = pheno[field]
-    return new_pheno
-
-@app.route('/variants', methods=['GET'])
+@app.route('/variant', methods=['GET'])
 def get_variants():
 	snpquery = db.session.query(Variant)
-	return jsonify(variant_list = [make_public_variant(i.serialize_nogt) for i in snpquery.all()])
+	return jsonify(variant_list = [i.info for i in snpquery.all()])
 
-@app.route('/phenotypes', methods=['GET'])
-def get_phenos():
-	snpquery = db.session.query(Phenotype)
-	return jsonify(pheno_list = [make_public_phenotype(i.serialize_nov) for i in snpquery.all()])
-
-@app.route('/buyvariant/<chromosome>/<int:position>', methods=['GET'])
+@app.route('/variant/<int:id>', methods=['GET'])
 @payment.required(1)
-def get_snp(chromosome, position):
-    	snpquery = db.session.query(Variant).filter(Variant.chr == chromosome).filter(Variant.pos == position)
-    	return jsonify(variant_list=[i.serialize for i in snpquery.all()])
+def get_snp(id):
+	snpquery = db.session.query(Variant).filter(Variant.id == id)
+	annotquery = db.session.query(Annotation).filter(Annotation.variant_id == id)
+	return jsonify(annotations=[i.as_dict for i in annotquery.all()], variant_info = [i.as_dict_wannot for i in snpquery.all()])
 
-@app.route('/buyphenotype/<int:phenoid>', methods=['GET'])
-@payment.required(1)
-def get_pheno(phenoid):
-    	phenoquery = db.session.query(Phenotype).filter(Phenotype.id == phenoid)
-    	return jsonify(pheno_list=[i.serialize for i in phenoquery.all()])
+@app.route('/gene/<id>', methods=['GET'])
+@payment.required(1000)
+def get_gene_variants(id):
+	annotquery = db.session.query(Annotation).filter(Annotation.symbol== id)
+	variantids = set()
+	for a in annotquery:
+		variantids.add(a.variant_id)	
+	snpquery = db.session.query(Variant).filter(Variant.id.in_(variantids))
+	return jsonify(variant_list = [i.as_dict_wannot for i in snpquery.all()])
+
+@app.route('/ensembl-gene/<id>', methods=['GET'])
+@payment.required(1000)
+def get_ensembl_gene_variants(id):
+        annotquery = db.session.query(Annotation).filter(Annotation.gene== id)
+        variantids = set()
+        for a in annotquery:
+                variantids.add(a.variant_id)
+        snpquery = db.session.query(Variant).filter(Variant.id.in_(variantids))
+        return jsonify(variant_list = [i.as_dict_wannot for i in snpquery.all()])
+
+
+@app.route('/lof/<geneid>', methods=['GET'])
+@payment.required(1000)
+def get_lof_gene_variants(geneid):
+        annotquery = db.session.query(Annotation).filter(Annotation.symbol== geneid).filter(Annotation.lof == "HC")
+        variantids = set()
+        for a in annotquery:
+                variantids.add(a.variant_id)
+        snpquery = db.session.query(Variant).filter(Variant.id.in_(variantids))
+        return jsonify(variant_list = [i.as_dict_wannot for i in snpquery.all()])
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', debug=False)

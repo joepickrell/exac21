@@ -4,11 +4,13 @@ import run
 
 run.db.create_all()
 
-infile = gzip.open(sys.argv[1])
+#infile = gzip.open(sys.argv[1])
+infile = sys.stdin
 line = infile.readline()
 vep_field_names = []
+index = 0
 while line:
-	line = bytes.decode(line)
+	#line = bytes.decode(line)
 	if line[0] == "#":
 		print(" ".join([line[:14], "##INFO=<ID=CSQ"]))
 		if line[:14] == "##INFO=<ID=CSQ":
@@ -19,7 +21,6 @@ while line:
 	if fields[6] != "PASS":
 		line = infile.readline()
 		continue
-	print(fields[6])
 	info_field = dict([(x.split('=', 1)) for x in re.split(';(?=\w)', fields[7]) if x.find('=') > -1])
 	#print(info_field)
 	annotations = [dict(zip(vep_field_names, x.split('|'))) for x in info_field['CSQ'].split(',')]
@@ -31,5 +32,9 @@ while line:
 		a = run.Annotation(variant_id = v.id, allele = annot['Allele'], consequence = annot['Consequence'], symbol = annot['SYMBOL'], gene = annot['Gene'], lof = annot["LoF"], lof_filter = annot['LoF_filter'], lof_flags = annot['LoF_flags'])
 		run.db.session.add(a)
 	run.db.session.commit()
+	if index % 1000 ==0:
+		print ("READ "+str(index)+" VARIANTS")
+		print ("CHR "+fields[0]+" POS "+fields[1])
+	index = index+1
 	line = infile.readline()
 	

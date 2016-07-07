@@ -29,8 +29,10 @@ while line:
 	run.db.session.add(v)
 	run.db.session.flush()
 	for annot in annotations:
-		a = run.Annotation(variant_id = v.id, allele = annot['Allele'], consequence = annot['Consequence'], symbol = annot['SYMBOL'], gene = annot['Gene'], lof = annot["LoF"], lof_filter = annot['LoF_filter'], lof_flags = annot['LoF_flags'])
-		run.db.session.add(a)
+		impact = annot['IMPACT']
+		if impact in set(["HIGH", "MODERATE", "LOW"]):
+			a = run.Annotation(variant_id = v.id, allele = annot['Allele'], consequence = annot['Consequence'], symbol = annot['SYMBOL'], gene = annot['Gene'], lof = annot["LoF"], lof_filter = annot['LoF_filter'], lof_flags = annot['LoF_flags'])
+			run.db.session.add(a)
 	run.db.session.commit()
 	if index % 1000 ==0:
 		print ("READ "+str(index)+" VARIANTS")

@@ -1,4 +1,6 @@
+swagger: '2.0'
 info:
+  version: 0.0.1
   title: 'ExAC21'
   description: 'Access the Exome Aggregation Consortium data (v0.3.1) on demand for bitcoin'
   x-21-quick-buy: '21 buy url http://10.244.188.146:6003/gene/PCSK9'
@@ -16,17 +18,45 @@ schemes:
 basePath: /
 x-21-manifest-path: /manifest
 paths:
-/gene: 
+  /gene/{id}:
      get:
-       summary: Returns the list of variants in the gene (genes defined by refseq ID, e.g. PCSK9).
-       responses:
-         200:
+        description: Returns all variants in a gene
+        parameters:
+          - name: id
+            description: Name of gene (RefSeq format)
+            in: path
+            required: true
+            type: string
+        responses:
+          200:
            description: list of variants
            schema:
              type: object
-    parameters:
-    - name: gene name
-      in: path
-      description: gene name to use
-      required: true
-
+  /ensemble-gene/{id}:
+     get:
+        description: Returns all variants in a gene
+        parameters:
+          - name: id
+            description: Name of gene (Ensembl ID)
+            in: path
+            required: true
+            type: string
+        responses:
+          200:
+           description: list of variants
+           schema:
+             type: object
+  /lof/{id}:
+     get:
+        description: Returns all annotation loss-of-function variants in a gene
+        parameters:
+          - name: id
+            description: Name of gene (RefSeq ID)
+            in: path
+            required: true
+            type: string
+        responses:
+          200:
+           description: list of variants
+           schema:
+             type: object

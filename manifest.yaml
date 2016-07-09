@@ -15,3 +15,18 @@ schemes:
   - http
 basePath: /
 x-21-manifest-path: /manifest
+paths:
+/gene: 
+     get:
+       summary: Returns the list of variants in the gene (genes defined by refseq ID, e.g. PCSK9).
+       responses:
+         200:
+           description: list of variants
+           schema:
+             type: object
+    parameters:
+    - name: gene name
+      in: path
+      description: gene name to use
+      required: true
+

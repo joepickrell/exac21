@@ -32,7 +32,7 @@ paths:
            description: list of variants
            schema:
              type: object
-  /ensemble-gene/{id}:
+  /ensembl-gene/{id}:
      get:
         description: Returns all variants in a gene
         parameters:

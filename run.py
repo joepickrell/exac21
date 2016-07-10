@@ -61,7 +61,7 @@ class Variant(db.Model):
 class Annotation(db.Model):
 	__tablename__ = "annotation"
 	id = db.Column(db.Integer, primary_key=True)
-	variant_id = db.Column(db.Integer, db.ForeignKey('variant.id'), nullable =False)
+	variant_id = db.Column(db.Integer, db.ForeignKey('variant.id'), nullable =False, index = True)
 	allele = db.Column(db.String(100), nullable = False)
 	consequence = db.Column(db.String(50), nullable= False)
 	symbol = db.Column(db.String(100), nullable = False, index = True)
@@ -82,19 +82,30 @@ def get_variants():
 	return jsonify(variant_list = [i.info for i in snpquery.all()])
 
 @app.route('/variant/<int:id>', methods=['GET'])
-@payment.required(1)
+#@payment.required(1)
 def get_snp(id):
 	snpquery = db.session.query(Variant).filter(Variant.id == id)
-	annotquery = db.session.query(Annotation).filter(Annotation.variant_id == id)
-	return jsonify(annotations=[i.as_dict for i in annotquery.all()], variant_info = [i.as_dict_wannot for i in snpquery.all()])
+	results = snpquery.all()
+	print(results)
+	if len(results)> 0:
+		print(results[0])
+		r = results[0]
+		a = r.annotation.all()
+		print(a)
+		#return jsonify(variant_info = [i.as_dict_wannot for i in results])
+		return jsonify(variant_info = [i.as_dict for i in results])
+	else:
+		return '{}'
 
 @app.route('/gene/<id>', methods=['GET'])
-@payment.required(1000)
+#@payment.required(1000)
 def get_gene_variants(id):
-	annotquery = db.session.query(Annotation).filter(Annotation.symbol== id)
+	annotquery = db.session.query(Annotation).filter(Annotation.symbol==id)
 	variantids = set()
 	for a in annotquery:
-		variantids.add(a.variant_id)	
+		print(a)
+		variantids.add(a.variant_id)
+	print(variantids)	
 	snpquery = db.session.query(Variant).filter(Variant.id.in_(variantids))
 	return jsonify(variant_list = [i.as_dict_wannot for i in snpquery.all()])
 

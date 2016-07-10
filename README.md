@@ -3,6 +3,7 @@
 # Run:
 
 > python3 load-all.py
+
 > python3 run.py
 
 # Endpoints:

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import os, sys, gzip
-import json
+import json, yaml
 import random
 
 from flask import Flask, render_template, jsonify, abort, make_response
@@ -75,6 +75,15 @@ class Annotation(db.Model):
 #Views
 wallet = Wallet()
 payment = Payment(app, wallet)
+
+@app.route('/manifest')
+def docs():
+    '''
+    Serves the app manifest to the 21 crawler.
+    '''
+    with open('manifest.yaml', 'r') as f:
+        manifest_yaml = yaml.load(f)
+    return json.dumps(manifest_yaml)
 
 @app.route('/variant', methods=['GET'])
 def get_variants():

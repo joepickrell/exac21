@@ -82,53 +82,67 @@ def get_variants():
 	return jsonify(variant_list = [i.info for i in snpquery.all()])
 
 @app.route('/variant/<int:id>', methods=['GET'])
-#@payment.required(1)
+@payment.required(1)
 def get_snp(id):
 	snpquery = db.session.query(Variant).filter(Variant.id == id)
 	results = snpquery.all()
-	print(results)
 	if len(results)> 0:
-		print(results[0])
 		r = results[0]
 		a = r.annotation.all()
-		print(a)
-		#return jsonify(variant_info = [i.as_dict_wannot for i in results])
-		return jsonify(variant_info = [i.as_dict for i in results])
+		return jsonify(variant_info = [i.as_dict_wannot for i in results])
 	else:
 		return '{}'
 
 @app.route('/gene/<id>', methods=['GET'])
-#@payment.required(1000)
+@payment.required(1000)
 def get_gene_variants(id):
 	annotquery = db.session.query(Annotation).filter(Annotation.symbol==id)
 	variantids = set()
 	for a in annotquery:
 		print(a)
 		variantids.add(a.variant_id)
-	print(variantids)	
+	print(variantids)
+	if len(variantids)<1:
+		return '{}'	
 	snpquery = db.session.query(Variant).filter(Variant.id.in_(variantids))
-	return jsonify(variant_list = [i.as_dict_wannot for i in snpquery.all()])
+	results = snpquery.all()
+	if len(results) >0:
+		return jsonify(variant_list = [i.as_dict_wannot for i in results])
+	else:
+		return '{}'
 
 @app.route('/ensembl-gene/<id>', methods=['GET'])
 @payment.required(1000)
 def get_ensembl_gene_variants(id):
-        annotquery = db.session.query(Annotation).filter(Annotation.gene== id)
-        variantids = set()
-        for a in annotquery:
-                variantids.add(a.variant_id)
-        snpquery = db.session.query(Variant).filter(Variant.id.in_(variantids))
-        return jsonify(variant_list = [i.as_dict_wannot for i in snpquery.all()])
+	annotquery = db.session.query(Annotation).filter(Annotation.gene== id)
+	variantids = set()
+	for a in annotquery:
+		variantids.add(a.variant_id)
+	if len(variantids)<1:
+		return '{}'
+	snpquery = db.session.query(Variant).filter(Variant.id.in_(variantids))
+	results = snpquery.all()
+	if len(results)>0:
+        	return jsonify(variant_list = [i.as_dict_wannot for i in results])
+	else:
+		return '{}'
 
 
 @app.route('/lof/<geneid>', methods=['GET'])
 @payment.required(1000)
 def get_lof_gene_variants(geneid):
-        annotquery = db.session.query(Annotation).filter(Annotation.symbol== geneid).filter(Annotation.lof == "HC")
-        variantids = set()
-        for a in annotquery:
-                variantids.add(a.variant_id)
-        snpquery = db.session.query(Variant).filter(Variant.id.in_(variantids))
-        return jsonify(variant_list = [i.as_dict_wannot for i in snpquery.all()])
+	annotquery = db.session.query(Annotation).filter(Annotation.symbol== geneid).filter(Annotation.lof == "HC")
+	variantids = set()
+	for a in annotquery:
+		variantids.add(a.variant_id)
+	if len(variantids)< 1:
+		return '{}'
+	snpquery = db.session.query(Variant).filter(Variant.id.in_(variantids))
+	results = snpquery.all()
+	if len(results)>0:
+        	return jsonify(variant_list = [i.as_dict_wannot for i in results])
+	else:
+		return '{}'
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', debug=False)

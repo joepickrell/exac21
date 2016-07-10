@@ -3,7 +3,7 @@ info:
   version: 0.0.1
   title: 'ExAC21'
   description: 'Access the Exome Aggregation Consortium data (v0.3.1) on demand for bitcoin'
-  x-21-quick-buy: '21 buy url http://10.244.188.146:6003/gene/PCSK9'
+  x-21-quick-buy: '21 buy url http://10.244.188.146:5000/gene/PCSK9'
   x-21-category: utilities
   x-21-app-image:
   x-21-total-price:
@@ -12,7 +12,7 @@ info:
   contact:
     name: Joe Pickrell
     email: joepickrell@gmail.com
-host: 10.244.188.146:6003
+host: 10.244.188.146:5000
 schemes:
   - http
 basePath: /

@@ -7,7 +7,7 @@ info:
   x-21-category: utilities
   x-21-app-image:
   x-21-total-price:
-    min: 0
+    min: 1000
     max: 1000
   contact:
     name: Joe Pickrell

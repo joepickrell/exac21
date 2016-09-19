@@ -154,4 +154,4 @@ def get_lof_gene_variants(geneid):
 		return '{}'
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', debug=False)
+    app.run(host="::", debug=False)
